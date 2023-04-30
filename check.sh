@@ -18,6 +18,91 @@ echo "root登录成功,确认你的系统是否为centos7"
 python --version
 
 
+echo "获取系统虚拟缓存…………"
+if [ $(grep SwapTotal /proc/meminfo|grep -v grep|awk '{print $2}') -eq 0 ];then
+        echo "主机没有swap, 将自动创建大小为1G的swap"
+        dd if=/dev/zero of=/swapfile count=1024 bs=1MiB&&
+        chmod 600 /swapfile&&mkswap /swapfile&&swapon /swapfile&&
+        echo '/swapfile   swap    swap    sw  0   0' >> /etc/fstab&&
+        echo "swap创建成功!"
+else 
+    echo  "存在swap"
+fi
+
+read -p "请输入单个域名,不要带http(s)://  :" domain
+if  [ -z "$domain" ] ;then
+    echo "输入域名错误"
+    read -p "请输入单个域名,不能有空格:" domain
+else
+    echo "域名: $domain"
+fi
+
+read -p "请输入本地实际访问端口,启动后ngix默认80代理,请输入默认8000 :" webport
+if  [ -z "$webport" ] ;then
+	webport="8000"
+    echo "访问方式: http://${domain}:${webport}"
+else
+    echo "访问方式: http://${domain}:${webport}"
+fi
+
+read -p "请输入数据库host,默认为127.0.0.1 [留空,回车默认] ：" dbhost
+if  [ -z "$dbhost" ] ;then
+    dbhost="127.0.0.1"
+    echo "您默认的数据库host为127.0.0.1"
+else
+    echo "您设置的数据库: ${dbhost}"
+fi
+
+read -p "请输入数据库端口,默认为3306 [留空,回车默认] ：" dbport
+if  [ -z "$dbport" ] ;then
+    dbport="3306"
+    echo "您默认的数据库端口为 :${dbport}"
+else
+    echo "您设置的数据库: ${dbport}"
+fi
+
+read -p "请输入数据库库名,默认为wandudb [留空,回车默认] ：" dbname
+if  [ -z "$dbname" ] ;then
+    dbname="wandudb"
+    echo "您默认的数据库端口为 :${dbname}"
+else
+    echo "您设置的数据库: ${dbname}"
+fi
+
+read -p "请输入数据库root密码:" dbpass
+if  [ -z "$dbpass" ] ;then
+    echo "请输入数据库root密码!"
+    read -p "请输入数据库root密码:" dbpass
+else
+    echo "数据库root密码: $dbpass"
+fi
+
+nowdir=$(pwd)
+echo $nowdir
+#替换域名和数据库密码为自定义的内容
+sed -i -e 's|www.baidu.com|'$domain'|' nginx.conf
+sed -i -e 's|192.168.8.8|'$domain'|' manage.py
+sed -i -e 's|goto_host|'$dbhost'|' sphinx.conf
+sed -i -e 's|goto_host|'$dbhost'|' simdht_worker.py
+sed -i -e 's|goto_host|'$dbhost'|' manage.py
+sed -i -e 's|123456|'$dbpass'|' sphinx.conf
+sed -i -e 's|123456|'$dbpass'|' simdht_worker.py
+sed -i -e 's|123456|'$dbpass'|' manage.py
+sed -i -e 's|3306|'$dbport'|' sphinx.conf
+sed -i -e 's|3306|'$dbport'|' simdht_worker.py
+sed -i -e 's|3306|'$dbport'|' manage.py
+sed -i -e 's|wandudb|'$dbname'|' sphinx.conf
+sed -i -e 's|wandudb|'$dbname'|' simdht_worker.py
+sed -i -e 's|wandudb|'$dbname'|' manage.py
+sed -i -e 's|/root/wandudht|'$nowdir'|' systemctl/gunicorn.service
+sed -i -e 's|/root/wandudht|'$nowdir'|' systemctl/indexer.service
+sed -i -e 's|/root/wandudht|'$nowdir'|' systemctl/searchd.service
+sed -i -e 's|/root/wandudht|'$nowdir'|' supervisor/gunicorn.conf
+sed -i -e 's|/root/wandudht|'$nowdir'|' supervisor/indexer.conf
+sed -i -e 's|/root/wandudht|'$nowdir'|' supervisor/searchd.conf
+sed -i -e 's|8000|'$webport'|' systemctl/gunicorn.service
+sed -i -e 's|8000|'$webport'|' supervisor/gunicorn.conf
+sed -i -e 's|8000|'$webport'|' sphinx.conf
 
 echo "修改时区"
 \cp -rpf /usr/share/zoneinfo/Asia/Chongqing /etc/localtime
@@ -67,26 +152,24 @@ echo '*  hard  nofile 65536' >> /etc/security/limits.conf
 ulimit -HSn 65536
 
 echo "安装必备组件中..."
+
 yum -y install wget gcc gcc-c++ python-devel mariadb mariadb-devel mariadb-server
 yum -y install psmisc net-tools lsof epel-release
 yum -y install redis
+yum -y install python-pip
 yum -y install git gcc cmake automake g++ mysql-devel
-yum -y install  vixie-cron crontabs
+wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+wget -qO /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
+yum clean metadata
+yum makecache
 
 pip3 install --upgrade pip
+
 pip3 install  setuptools
 pip3 install  greenlet
 pip3 install wheel
-pip3 install redis
-pip3 install libtorrent
-
-
 
 echo "根据系统文件的requirements.txt安装必备依赖库"
 pip3 install -r requirements.txt
-
-echo "清除80端口"
-kill -9 $(lsof -i:80|tail -1|awk '"$1"!=""{print $2}')
-
-
+#如果提示没有pip命令,或者你使用linode的主机,请取消下面4行的注释
 
