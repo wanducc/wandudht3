@@ -8,8 +8,8 @@
 ```Bash
 cd /root 
 yum -y install git 
-git  clone https://github.com/wanducc/wandudht.git 
-cd wandudht
+git  clone https://github.com/wanducc/wandudht3.git 
+cd wandudht3
 #然后运行check.sh安装必要的环境依赖包和组件
 sh set.sh
 ```
