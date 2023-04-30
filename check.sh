@@ -78,7 +78,7 @@ pip3 install  setuptools
 pip3 install  greenlet
 pip3 install wheel
 pip3 install redis
-pip3 install lbry-libtorrent
+pip3 install libtorrent
 
 
 

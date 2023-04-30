@@ -60,6 +60,7 @@ else
 fi
 
 nowdir=$(pwd)
+echo $nowdir
 #替换域名和数据库密码为自定义的内容
 sed -i -e 's|www.baidu.com|'$domain'|' nginx.conf
 sed -i -e 's|192.168.8.8|'$domain'|' manage.py
@@ -116,22 +117,23 @@ else
     cd ..
 fi
 
-sphinx-jiebapath=$(whereis sphinx-jieba | awk -F ' ' '{print $2}')
-echo "sphinx-jiebapath路径： ${sphinx-jiebapath}"
-sed -i -e 's|/usr/local/sphinx-jieba|'$sphinx-jiebapath'|' systemctl/indexer.service
-sed -i -e 's|/usr/local/sphinx-jieba|'$sphinx-jiebapath'|' supervisor/indexer.conf
-sed -i -e 's|/usr/local/sphinx-jieba|'$sphinx-jiebapath'|' systemctl/searchd.service
-sed -i -e 's|/usr/local/sphinx-jieba|'$sphinx-jiebapath'|' supervisor/searchd.conf
-sed -i -e 's|/usr/local/sphinx-jieba|'$sphinx-jiebapath'|' sphinx.conf
+sphinxpath=$(whereis sphinx-jieba | awk -F ' ' '{print $2}')
+echo "sphinx-jiebapath路径： ${sphinxpath}"
+sed -i -e 's|/usr/local/sphinx-jieba|'$sphinxpath'|' systemctl/indexer.service
+sed -i -e 's|/usr/local/sphinx-jieba|'$sphinxpath'|' supervisor/indexer.conf
+sed -i -e 's|/usr/local/sphinx-jieba|'$sphinxpath'|' systemctl/searchd.service
+sed -i -e 's|/usr/local/sphinx-jieba|'$sphinxpath'|' supervisor/searchd.conf
+sed -i -e 's|/usr/local/sphinx-jieba|'$sphinxpath'|' sphinx.conf
+
 \cp -rpf systemctl/gunicorn.service  systemctl/indexer.service systemctl/searchd.service  /etc/systemd/system
 
 systemctl daemon-reload	
-
+echo $nowdir
 read -p "是否数据库在本地:?[y/n]" mysqlwhere
 if [[ x"${mysqlwhere}" == x"y" || x"${mysqlwhere}" == x"Y" ]]; then
     echo "直接回车，不用输入"
-	\cp -rpf my.cnf  /etc/my.cnf 
-	systemctl start  mariadb.service 
+    \cp -rpf my.cnf /etc/my.cnf 
+	systemctl start mariadb.service 
 	echo "正在创建数据库信息……直接回车"
 	mysqladmin -uroot -p password ${dbpass}
 	cesql="create database IF NOT EXISTS ${dbname} default character set utf8mb4;set global max_allowed_packet = 64*1024*1024;set global max_connections = 100000;" 
