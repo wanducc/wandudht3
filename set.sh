@@ -78,15 +78,52 @@ sed -i -e 's|wandudb|'$dbname'|' manage.py
 sed -i -e 's|/root/wandudht|'$nowdir'|' systemctl/gunicorn.service
 sed -i -e 's|/root/wandudht|'$nowdir'|' systemctl/indexer.service
 sed -i -e 's|/root/wandudht|'$nowdir'|' systemctl/searchd.service
+sed -i -e 's|/root/wandudht|'$nowdir'|' supervisor/gunicorn.conf
+sed -i -e 's|/root/wandudht|'$nowdir'|' supervisor/indexer.conf
+sed -i -e 's|/root/wandudht|'$nowdir'|' supervisor/searchd.conf
 sed -i -e 's|8000|'$webport'|' systemctl/gunicorn.service
+sed -i -e 's|8000|'$webport'|' supervisor/gunicorn.conf
 sed -i -e 's|8000|'$webport'|' sphinx.conf
 
 
 echo "创建上传目录:"
 mkdir -p uploads  uploads/nvyou  uploads/fanhao
 #注册服务
-\cp -rpf systemctl/gunicorn.service  systemctl/indexer.service  systemctl/searchd.service /etc/systemd/system
+gunicornpath=$(whereis gunicorn)
+sed -i -e 's|/usr/bin/gunicorn|'$gunicornpath'|' systemctl/gunicorn.service
+sed -i -e 's|/usr/bin/gunicorn|'$gunicornpath'|' supervisor/gunicorn.conf
+sphinx-jiebapath=$(whereis sphinx-jieba)
+
+sed -i -e 's|/usr/local/sphinx-jieba|'$sphinx-jiebapath'|' systemctl/indexer.service
+sed -i -e 's|/usr/local/sphinx-jieba|'$sphinx-jiebapath'|' supervisor/indexer.conf
+sed -i -e 's|/usr/local/sphinx-jieba|'$sphinx-jiebapath'|' systemctl/searchd.service
+sed -i -e 's|/usr/local/sphinx-jieba|'$sphinx-jiebapath'|' supervisor/searchd.conf
+sed -i -e 's|/usr/local/sphinx-jieba|'$sphinx-jiebapath'|' sphinx.conf
+\cp -rpf systemctl/gunicorn.service /etc/systemd/system
+\cp -rpf systemctl/indexer.service /etc/systemd/system
+\cp -rpf systemctl/searchd.service /etc/systemd/system
 systemctl daemon-reload	
+read -p "是否安装了sphinx:?[y/n]" mysqlwhere
+if [[ x"${sphinxwhere}" == x"y" || x"${sphinxwhere}" == x"Y" ]]; then
+    echo "已经安装！"
+else
+    echo "编译分词索引工具sphinx……"
+    git clone https://github.com/wenguonideshou/sphinx-jieba
+    cd sphinx-jieba
+    git submodule update --init --recursive
+    ./configure --prefix=/usr/local/sphinx-jieba
+    \cp -r cppjieba/include/cppjieba src/ 
+    \cp -r cppjieba/deps/limonp src/ 
+    make install
+    \cp -r cppjieba/dict/* /usr/local/sphinx-jieba/etc/ 
+    cd /usr/local/sphinx-jieba/
+    \cp etc/jieba.dict.utf8 etc/xdictjieba.dict.utf8
+    \cp etc/user.dict.utf8 etc/xdictuser.dict.utf8
+    \cp etc/hmm_model.utf8 etc/xdicthmm_model.utf8
+    \cp etc/idf.utf8 etc/xdictidf.utf8
+    \cp etc/stop_words.utf8 etc/xdictstop_words.utf8
+    cd ..
+fi
 
 read -p "是否数据库在本地:?[y/n]" mysqlwhere
 if [[ x"${mysqlwhere}" == x"y" || x"${mysqlwhere}" == x"Y" ]]; then
@@ -119,29 +156,17 @@ echo "配置前端ngxin……"
 \cp -rpf nginx.conf  /etc/nginx/nginx.conf 
 nginx -s reload
 echo "启动前端网站，并且加载网络库"
+
 systemctl start gunicorn
 systemctl enable gunicorn
+
+
 
 echo "后台开启爬虫,并且开启日志，后续可定时清理"
 nohup python3 $(pwd)/simdht_worker.py >$(pwd)/spider.log 2>&1& 
 
 
-echo "编译分词索引工具sphinx……"
-git clone https://github.com/wenguonideshou/sphinx-jieba
-cd sphinx-jieba
-git submodule update --init --recursive
-./configure --prefix=/usr/local/sphinx-jieba
-\cp -r cppjieba/include/cppjieba src/ 
-\cp -r cppjieba/deps/limonp src/ 
-make install
-\cp -r cppjieba/dict/* /usr/local/sphinx-jieba/etc/ 
-cd /usr/local/sphinx-jieba/
-\cp etc/jieba.dict.utf8 etc/xdictjieba.dict.utf8
-\cp etc/user.dict.utf8 etc/xdictuser.dict.utf8
-\cp etc/hmm_model.utf8 etc/xdicthmm_model.utf8
-\cp etc/idf.utf8 etc/xdictidf.utf8
-\cp etc/stop_words.utf8 etc/xdictstop_words.utf8
-cd ..
+
 echo "开启索引……"
 systemctl start indexer	
 systemctl enable indexer

@@ -9,7 +9,7 @@
 import socket
 import hashlib
 import os
-import SimpleXMLRPCServer
+import xmlrpc.server
 import time
 import datetime
 import traceback
@@ -20,7 +20,7 @@ from hashlib import sha1
 from random import randint
 from socket import inet_ntoa
 from collections import deque
-from Queue import Queue
+from queue import Queue
 import MySQLdb
 from DBUtils.PooledDB import PooledDB
 import math
@@ -35,7 +35,7 @@ try:
     import libtorrent as lt
 except:
     lt = None
-    print(sys.exc_info()[1])
+    print((sys.exc_info()[1]))
 
 
 DB_NAME = 'wandudb'
@@ -63,17 +63,17 @@ def get_extension(name):
 def get_category(ext):
     ext = ext + '.'
     cats = {
-        u'影视': '.avi.mp4.rmvb.m2ts.wmv.mkv.flv.qmv.rm.mov.vob.asf.3gp.mpg.mpeg.m4v.f4v.',
-        u'图像': '.jpg.bmp.jpeg.png.gif.tiff.',
-        u'文档书籍': '.pdf.isz.chm.txt.epub.bc!.doc.ppt.',
-        u'音乐': '.mp3.ape.wav.dts.mdf.flac.',
-        u'压缩文件': '.zip.rar.7z.tar.gz.iso.dmg.pkg.',
-        u'安装包': '.exe.app.msi.apk.'
+        '影视': '.avi.mp4.rmvb.m2ts.wmv.mkv.flv.qmv.rm.mov.vob.asf.3gp.mpg.mpeg.m4v.f4v.',
+        '图像': '.jpg.bmp.jpeg.png.gif.tiff.',
+        '文档书籍': '.pdf.isz.chm.txt.epub.bc!.doc.ppt.',
+        '音乐': '.mp3.ape.wav.dts.mdf.flac.',
+        '压缩文件': '.zip.rar.7z.tar.gz.iso.dmg.pkg.',
+        '安装包': '.exe.app.msi.apk.'
     }
-    for k, v in cats.iteritems():
+    for k, v in cats.items():
         if ext in v:
             return k
-    return u'其他'
+    return '其他'
 
 def get_detail(y):
     if y.get('files'):
@@ -167,7 +167,7 @@ def recvall(the_socket, timeout=5):
     return "".join(total_data)
     
 def entropy(length):
-    return "".join(chr(randint(0, 255)) for _ in xrange(length))
+    return "".join(chr(randint(0, 255)) for _ in range(length))
 
 
 def random_id():
@@ -301,7 +301,7 @@ class DHTServer(DHTClient):
     def on_message(self, msg, address):
         try:
             if msg["y"] == "r":
-                if msg["r"].has_key("nodes"):
+                if "nodes" in msg["r"]:
                     self.process_find_node_response(msg, address)
             elif msg["y"] == "q":
                 try:
@@ -339,13 +339,13 @@ class DHTServer(DHTClient):
             tid = msg["t"]
 
             if infohash[:TOKEN_LENGTH] == token:
-                if msg["a"].has_key("implied_port ") and msg["a"]["implied_port "] != 0:
+                if "implied_port " in msg["a"] and msg["a"]["implied_port "] != 0:
                     port = address[1]
                 else:
                     port = msg["a"]["port"]
                 self.master.log_announce(infohash, (address[0], port))
         except Exception:
-            print 'error'
+            print('error')
             pass
         finally:
             self.ok(msg, address)
@@ -435,7 +435,7 @@ class Master(Thread):
             try:
                 self.dbcurr.execute('INSERT IGNORE INTO search_filelist VALUES(%s, %s)', (info['info_hash'], json.dumps(files)))
             except:
-                print self.name, 'insert search_filelist error', sys.exc_info()[1]
+                print(self.name, 'insert search_filelist error', sys.exc_info()[1])
             del files
 
         try:
@@ -443,9 +443,9 @@ class Master(Thread):
             self.dbcurr.execute('INSERT IGNORE INTO search_hash(info_hash,category,data_hash,name,extension,classified,source_ip,tagged,length,create_time,last_seen,requests,comment,creator) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',(info['info_hash'], info['category'], info['data_hash'], info['name'], info['extension'], info['classified'], info['source_ip'], info['tagged'], info['length'], info['create_time'], info['last_seen'], info['requests'], info.get('comment',''), info.get('creator','')))
             self.dbcurr.connection.commit()
             self.n_new += 1
-            print '\n', (datetime.datetime.utcnow()+ datetime.timedelta(hours=8)).strftime("%Y-%m-%d %H:%M:%S"), info['info_hash'], address[0], 'saved!'
+            print('\n', (datetime.datetime.utcnow()+ datetime.timedelta(hours=8)).strftime("%Y-%m-%d %H:%M:%S"), info['info_hash'], address[0], 'saved!')
         except:
-            print self.name, 'save search_hash error', info
+            print(self.name, 'save search_hash error', info)
             traceback.print_exc()
             return
 
@@ -453,7 +453,7 @@ class Master(Thread):
 
     def run(self):
         self.name = threading.currentThread().getName()
-        print self.name, 'started'
+        print(self.name, 'started')
         while True:
             while self.metadata_queue.qsize() > 0:
                 self.got_torrent()
@@ -597,7 +597,7 @@ class Master(Thread):
         meta = None
         down_time = time.time()
         down_path = None
-        for i in xrange(0, timeout):
+        for i in range(0, timeout):
             if handle.has_metadata():
                 info = handle.get_torrent_info()
                 down_path = '/tmp/downloads/%s' % info.name()
@@ -665,7 +665,7 @@ class Master(Thread):
 
         except socket.timeout:
             pass
-        except Exception, e:
+        except Exception as e:
             pass #print e
 
         finally:
@@ -680,9 +680,9 @@ def announce(info_hash, address):
 
 
 def rpc_server():
-    rpcserver = SimpleXMLRPCServer.SimpleXMLRPCServer(('localhost', 8004), logRequests=False)
+    rpcserver = xmlrpc.server.SimpleXMLRPCServer(('localhost', 8004), logRequests=False)
     rpcserver.register_function(announce, 'announce')
-    print 'Starting xml rpc server...'
+    print('Starting xml rpc server...')
     rpcserver.serve_forever()
 
 
