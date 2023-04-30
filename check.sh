@@ -8,6 +8,7 @@ yum -y install python3
 
 yum -y install nano
 yum -y install curl
+yum -y install python3-devel
 
 #检测是否root登录
 [ $(id -u) -gt 0 ] && echo "请用root用户执行此脚本！可输入:sudo -i 获取root群星" && exit 1
@@ -72,8 +73,13 @@ yum -y install redis
 yum -y install git gcc cmake automake g++ mysql-devel
 yum -y install  vixie-cron crontabs
 yum -y install nginx
-pip3 install setuptools
+
 pip3 install --upgrade setuptools
+pip3 install --upgrade sqlalchemy
+pip3 install --upgrade greenlet
+
+
+
 
 echo "根据系统文件的requirements.txt安装必备依赖库"
 pip3 install -r requirements.txt

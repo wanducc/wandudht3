@@ -4,7 +4,6 @@
 import sys
 import importlib
 importlib.reload(sys)
-sys.setdefaultencoding('utf-8')
 
 import redis
 import re
