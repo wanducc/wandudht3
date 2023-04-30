@@ -162,10 +162,11 @@ yum -y install psmisc net-tools lsof epel-release
 yum -y install redis
 yum -y install python-pip
 yum -y install git gcc cmake automake g++ mysql-devel
-
+yum -y install  vixie-cron crontabs
+pip3 install --upgrade werkzeug
 pip3 install  setuptools
 pip3 install --upgrade setuptools
-pip3 install greenlet==0.4.15
+pip3 install greenlet
 pip3 install wheel
 
 echo "根据系统文件的requirements.txt安装必备依赖库"
