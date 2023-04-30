@@ -77,6 +77,8 @@ pip3 install --upgrade pip
 pip3 install  setuptools
 pip3 install  greenlet
 pip3 install wheel
+pip3 install redis
+pip3 install libtorrent
 
 
 

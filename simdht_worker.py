@@ -35,7 +35,7 @@ try:
     import libtorrent as lt
 except:
     lt = None
-    print sys.exc_info()[1]
+    print(sys.exc_info()[1])
 
 
 DB_NAME = 'wandudb'

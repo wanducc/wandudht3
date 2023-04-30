@@ -1,9 +1,9 @@
 #encoding:utf-8
 #万度 2023.4.29
-
 import sys
 import importlib
-importlib.reload(sys)
+import imp
+imp.reload(sys)
 import redis
 import re
 import base64

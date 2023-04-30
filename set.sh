@@ -19,7 +19,7 @@ else
     echo "域名: $domain"
 fi
 
-read -p "请输入网站前端访问端口,默认8000 :" webport
+read -p "请输入本地实际访问端口,启动后ngix默认80代理,请输入默认8000 :" webport
 if  [ -z "$webport" ] ;then
 	webport="8000"
     echo "访问方式: http://${domain}:${webport}"
@@ -79,6 +79,7 @@ sed -i -e 's|/root/wandudht|'$nowdir'|' systemctl/gunicorn.service
 sed -i -e 's|/root/wandudht|'$nowdir'|' systemctl/indexer.service
 sed -i -e 's|/root/wandudht|'$nowdir'|' systemctl/searchd.service
 sed -i -e 's|8000|'$webport'|' systemctl/gunicorn.service
+sed -i -e 's|8000|'$webport'|' sphinx.conf
 
 
 echo "创建上传目录:"
@@ -99,6 +100,7 @@ if [[ x"${mysqlwhere}" == x"y" || x"${mysqlwhere}" == x"Y" ]]; then
 	systemctl enable mariadb.service
 else
 	echo "您启用了远程数据库！"
+    systemctl enable mariadb.service
 fi
 
 echo "开启队列信息……"

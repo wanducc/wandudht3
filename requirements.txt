@@ -14,6 +14,6 @@ Flask_BabelEx
 Flask_WTF
 Flask_Login
 DBUtils==1.2
-gunicorn==19.7.1
+gunicorn
 gevent==1.2.2
 redis==2.10.5
