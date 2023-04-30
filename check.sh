@@ -13,21 +13,18 @@ yum -y install curl
 [ $(id -u) -gt 0 ] && echo "请用root用户执行此脚本！可输入:sudo -i 获取root群星" && exit 1
 echo "root登录成功,确认你的系统是否为centos7"
 #判断是否为centos
-echo "现在我们即将卸载python3，和python2，安装python2.7版本"
+echo "现在我们即将卸载python3.11.3"
 python --version
 #if [ $(id -u) != "0" ]; then
 #    echo "当前非root用户登录系统， 请使用root用户运行此脚本!"
 #    exit 1
 #fi
-echo "如果显示python版本为2.7,继续等待！如果不是请卸载。"
+
 #是python 2.7往下走
 #
 echo "下载配套pip"
 
-curl https://bootstrap.pypa.io/pip/2.7/get-pip.py --output get-pip.py 
-python get-pip.py
-echo "安装pip成功，版本为："
-pip --version
+
 
 echo "修改时区"
 \cp -rpf /usr/share/zoneinfo/Asia/Chongqing /etc/localtime
