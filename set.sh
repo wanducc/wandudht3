@@ -89,68 +89,17 @@ yum install -y libstdc++-4.8.5-44.el7.i686
 echo "创建上传目录:"
 mkdir -p uploads  uploads/nvyou  uploads/fanhao
 #注册服务
-gunicornpath=$(whereis gunicorn)
+gunicornpath=$(whereis gunicorn | awk -F ' ' '{print $2}')
+echo "gunicornpath路径： ${gunicornpath}"
 sed -i -e 's|/usr/bin/gunicorn|'$gunicornpath'|' systemctl/gunicorn.service
 sed -i -e 's|/usr/bin/gunicorn|'$gunicornpath'|' supervisor/gunicorn.conf
-sphinx-jiebapath=$(whereis sphinx-jieba)
-
-sed -i -e 's|/usr/local/sphinx-jieba|'$sphinx-jiebapath'|' systemctl/indexer.service
-sed -i -e 's|/usr/local/sphinx-jieba|'$sphinx-jiebapath'|' supervisor/indexer.conf
-sed -i -e 's|/usr/local/sphinx-jieba|'$sphinx-jiebapath'|' systemctl/searchd.service
-sed -i -e 's|/usr/local/sphinx-jieba|'$sphinx-jiebapath'|' supervisor/searchd.conf
-sed -i -e 's|/usr/local/sphinx-jieba|'$sphinx-jiebapath'|' sphinx.conf
-\cp -rpf systemctl/gunicorn.service  systemctl/indexer.service systemctl/searchd.service  /etc/systemd/system
-
-systemctl daemon-reload	
-
-read -p "是否数据库在本地:?[y/n]" mysqlwhere
-if [[ x"${mysqlwhere}" == x"y" || x"${mysqlwhere}" == x"Y" ]]; then
-    echo "请输入数据库root密码!"
-	\cp -rpf my.cnf  /etc/my.cnf 
-	systemctl start  mariadb.service 
-	echo "正在创建数据库信息……直接回车"
-	mysqladmin -uroot -p password ${dbpass}
-	cesql="create database IF NOT EXISTS ${dbname} default character set utf8mb4;set global max_allowed_packet = 64*1024*1024;set global max_connections = 100000;" 
-	mysql -uroot -p${dbpass} -e "$cesql"
-
-else
-	echo "您启用了远程数据库！"
-fi
-systemctl stop mariadb.service
-systemctl start mariadb.service
-systemctl enable mariadb.service
-echo "开启队列信息……"
-systemctl stop redis.service
-systemctl start redis.service
-systemctl enable redis.service
-
-echo "数据库建表"
-python3 manage.py init_db
-echo "创建管理员,会提示输入管理员用户名和密码,邮箱"
-python3 manage.py create_user
-
-kill -9 $(lsof -i:${$webport}|tail -1|awk '"$1"!=""{print $2}')
-
-sleep 3
-echo "配置前端ngxin……"
-\cp -rpf nginx.conf  /etc/nginx/nginx.conf 
-nginx -s reload
-echo "启动前端网站，并且加载网络库"
-systemctl stop gunicorn
-systemctl start gunicorn
-systemctl enable gunicorn
-
-
-
-echo "后台开启爬虫,并且开启日志，后续可定时清理"
-nohup python3 $(pwd)/simdht_worker.py >$(pwd)/spider.log 2>&1& 
 
 read -p "是否安装了sphinx:?[y/n]" sphinxwhere
 if [[ x"${sphinxwhere}" == x"y" || x"${sphinxwhere}" == x"Y" ]]; then
     echo "已经安装！"
 else
     echo "编译分词索引工具sphinx……"
-    git clone https://github.com/wenguonideshou/sphinx-jieba
+    git clone https://github.com/wanducc/sphinx-jieba
     cd sphinx-jieba
     git submodule update --init --recursive
     ./configure --prefix=/usr/local/sphinx-jieba
@@ -167,13 +116,70 @@ else
     cd ..
 fi
 
+sphinx-jiebapath=$(whereis sphinx-jieba | awk -F ' ' '{print $2}')
+echo "sphinx-jiebapath路径： ${sphinx-jiebapath}"
+sed -i -e 's|/usr/local/sphinx-jieba|'$sphinx-jiebapath'|' systemctl/indexer.service
+sed -i -e 's|/usr/local/sphinx-jieba|'$sphinx-jiebapath'|' supervisor/indexer.conf
+sed -i -e 's|/usr/local/sphinx-jieba|'$sphinx-jiebapath'|' systemctl/searchd.service
+sed -i -e 's|/usr/local/sphinx-jieba|'$sphinx-jiebapath'|' supervisor/searchd.conf
+sed -i -e 's|/usr/local/sphinx-jieba|'$sphinx-jiebapath'|' sphinx.conf
+\cp -rpf systemctl/gunicorn.service  systemctl/indexer.service systemctl/searchd.service  /etc/systemd/system
+
+systemctl daemon-reload	
+
+read -p "是否数据库在本地:?[y/n]" mysqlwhere
+if [[ x"${mysqlwhere}" == x"y" || x"${mysqlwhere}" == x"Y" ]]; then
+    echo "直接回车，不用输入"
+	\cp -rpf my.cnf  /etc/my.cnf 
+	systemctl start  mariadb.service 
+	echo "正在创建数据库信息……直接回车"
+	mysqladmin -uroot -p password ${dbpass}
+	cesql="create database IF NOT EXISTS ${dbname} default character set utf8mb4;set global max_allowed_packet = 64*1024*1024;set global max_connections = 100000;" 
+	mysql -uroot -p${dbpass} -e "$cesql"
+
+else
+	echo "您启用了远程数据库！"
+fi
+
+echo "开启队列信息……"
+systemctl stop redis.service
+systemctl start redis.service
+systemctl enable redis.service
+
+echo "数据库建表"
+python3 manage.py init_db
+echo "创建管理员,会提示输入管理员用户名和密码,邮箱"
+python3 manage.py create_user
+
+kill -9 $(lsof -i:${$webport}|tail -1|awk '"$1"!=""{print $2}')
+
+sleep 3
+echo "配置前端ngxin……"
+yum -y install nginx
+systemctl start mariadb.service
+systemctl enable mariadb.service
+\cp -rpf nginx.conf  /etc/nginx/nginx.conf 
+nginx -s reload
+echo "启动前端网站，并且加载网络库"
+systemctl start gunicorn
+systemctl enable gunicorn
+
+
+
+echo "后台开启爬虫,并且开启日志，后续可定时清理"
+nohup python3 $(pwd)/simdht_worker.py >$(pwd)/spider.log 2>&1& 
+
+
+
 
 echo "开启索引……"
-systemctl start indexer	
-systemctl enable indexer
+systemctl stop indexer.service
+systemctl start indexer.service
+systemctl enable indexer.service
 echo "开启分词搜索……"
-systemctl start searchd	
-systemctl enable searchd
+systemctl stop searchd.service 
+systemctl start searchd.service	
+systemctl enable searchd.service
 
 
 

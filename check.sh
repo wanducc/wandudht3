@@ -72,7 +72,7 @@ yum -y install psmisc net-tools lsof epel-release
 yum -y install redis
 yum -y install git gcc cmake automake g++ mysql-devel
 yum -y install  vixie-cron crontabs
-yum -y install nginx
+
 pip3 install --upgrade pip
 pip3 install  setuptools
 pip3 install  greenlet
@@ -89,6 +89,4 @@ echo "清除80端口"
 kill -9 $(lsof -i:80|tail -1|awk '"$1"!=""{print $2}')
 
 
-systemctl start  nginx.service
-systemctl enable  nginx.service
 
