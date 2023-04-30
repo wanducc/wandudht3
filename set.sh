@@ -79,17 +79,8 @@ sed -i -e 's|/root/wandudht|'$nowdir'|' systemctl/gunicorn.service
 sed -i -e 's|/root/wandudht|'$nowdir'|' systemctl/indexer.service
 sed -i -e 's|/root/wandudht|'$nowdir'|' systemctl/searchd.service
 sed -i -e 's|8000|'$webport'|' systemctl/gunicorn.service
-echo "检测python不再支持lib库,正在手动安装编译,耗费时间交长……"
-yum -y install libtool
-yum -y install boost-devel
-wget https://github.com/arvidn/libtorrent/archive/refs/tags/libtorrent-1_1_5.tar.gz
-libtorrent-1_1_5.tar.gz
-tar -zxvf libtorrent-1_1_5.tar.gz
-cd libtorrent-1_1_5
-make clean
-./configure --enable-python-binding
-make
-make install
+
+
 echo "创建上传目录:"
 mkdir -p uploads  uploads/nvyou  uploads/fanhao
 #注册服务
@@ -101,10 +92,10 @@ if [[ x"${mysqlwhere}" == x"y" || x"${mysqlwhere}" == x"Y" ]]; then
     echo "请输入数据库root密码!"
 	\cp -rpf my.cnf  /etc/my.cnf 
 	systemctl start  mariadb.service 
-	echo "正在创建数据库信息……直"
+	echo "正在创建数据库信息……直接回车"
 	mysqladmin -uroot -p password ${dbpass}
 	cesql="create database IF NOT EXISTS ${dbname} default character set utf8mb4;set global max_allowed_packet = 64*1024*1024;set global max_connections = 100000;" 
-	mysql -uroot -p${dbpass} -e "${cesql}"
+	mysql -uroot -p${dbpass} -e "$cesql"
 	systemctl enable mariadb.service
 else
 	echo "您启用了远程数据库！"
@@ -115,9 +106,9 @@ systemctl start redis.service
 systemctl enable redis.service
 
 echo "数据库建表"
-python manage.py init_db
+python3 manage.py init_db
 echo "创建管理员,会提示输入管理员用户名和密码,邮箱"
-python manage.py create_user
+python3 manage.py create_user
 
 kill -9 $(lsof -i:${$webport}|tail -1|awk '"$1"!=""{print $2}')
 
@@ -130,7 +121,7 @@ systemctl start gunicorn
 systemctl enable gunicorn
 
 echo "后台开启爬虫,并且开启日志，后续可定时清理"
-nohup python $(pwd)/simdht_worker.py >$(pwd)/spider.log 2>&1& 
+nohup python3 $(pwd)/simdht_worker.py >$(pwd)/spider.log 2>&1& 
 
 
 echo "编译分词索引工具sphinx……"
@@ -166,7 +157,7 @@ echo "systemctl start  nginx.service" >> /etc/rc.local
 echo "systemctl start  gunicorn.service" >> /etc/rc.local
 echo "systemctl start  indexer.service" >> /etc/rc.local
 echo "systemctl start  searchd.service" >> /etc/rc.local
-echo "nohup python $(pwd)/simdht_worker.py>$(pwd)/spider.log 2>&1&" >> /etc/rc.local
+echo "nohup python3 $(pwd)/simdht_worker.py>$(pwd)/spider.log 2>&1&" >> /etc/rc.local
 sleep 5
 echo "开启标准大页hugePage"
 echo "echo never > /sys/kernel/mm/transparent_hugepage/enabled" >> /etc/rc.local

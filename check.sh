@@ -4,7 +4,7 @@
 echo "本系统运行环境如下:"
 
 echo "系统:centos 7,如果非此系统请不要继续运行，ctrl+c键 退出本脚本！"
-
+yum -y install python3
 
 yum -y install nano
 yum -y install curl
@@ -13,16 +13,8 @@ yum -y install curl
 [ $(id -u) -gt 0 ] && echo "请用root用户执行此脚本！可输入:sudo -i 获取root群星" && exit 1
 echo "root登录成功,确认你的系统是否为centos7"
 #判断是否为centos
-echo "现在我们即将卸载python3.11.3"
-python --version
-#if [ $(id -u) != "0" ]; then
-#    echo "当前非root用户登录系统， 请使用root用户运行此脚本!"
-#    exit 1
-#fi
 
-#是python 2.7往下走
-#
-echo "下载配套pip"
+python --version
 
 
 
@@ -80,11 +72,11 @@ yum -y install redis
 yum -y install git gcc cmake automake g++ mysql-devel
 yum -y install  vixie-cron crontabs
 yum -y install nginx
-pip install setuptools
-pip install --upgrade setuptools
+pip3 install setuptools
+pip3 install --upgrade setuptools
 
 echo "根据系统文件的requirements.txt安装必备依赖库"
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 
 echo "清除80端口"
 kill -9 $(lsof -i:80|tail -1|awk '"$1"!=""{print $2}')
