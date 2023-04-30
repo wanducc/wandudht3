@@ -4,10 +4,10 @@
 echo "本系统运行环境如下:"
 
 echo "系统:centos 7,如果非此系统请不要继续运行，ctrl+c键 退出本脚本！"
-wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
-wget -qO /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
-yum clean metadata
-yum makecache
+#wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+#wget -qO /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
+#yum clean metadata
+#yum makecache
 yum -y install python3
 
 yum -y install nano
@@ -164,7 +164,8 @@ yum -y install python-pip
 yum -y install git gcc cmake automake g++ mysql-devel
 
 pip3 install  setuptools
-pip3 install  greenlet
+pip3 install --upgrade setuptools
+pip3 install greenlet==0.4.15
 pip3 install wheel
 
 echo "根据系统文件的requirements.txt安装必备依赖库"
