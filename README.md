@@ -11,13 +11,13 @@ yum -y install git
 git  clone https://github.com/wanducc/wandudht.git 
 cd wandudht
 #然后运行check.sh安装必要的环境依赖包和组件
-sh check.sh 
+sh set.sh
 ```
 
 安装脚本只支持Centos7+Python2.7环境
 等待环境检测后开始进行初始化设置:
 ```Bash
-sh set.sh
+
 ```
 
 主机配置要求：至少1G内存、至少100G硬盘，至少1G SWAP，具有公网IP的国外主机/服务器
