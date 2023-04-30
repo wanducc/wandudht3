@@ -163,9 +163,6 @@ yum -y install redis
 yum -y install python-pip
 yum -y install git gcc cmake automake g++ mysql-devel
 
-
-pip3 install --upgrade pip
-
 pip3 install  setuptools
 pip3 install  greenlet
 pip3 install wheel
@@ -192,12 +189,10 @@ if [[ x"${mysqlwhere}" == x"y" || x"${mysqlwhere}" == x"Y" ]]; then
     mysqladmin -uroot -p password ${dbpass}
     cesql="create database IF NOT EXISTS ${dbname} default character set utf8mb4;set global max_allowed_packet = 64*1024*1024;set global max_connections = 100000;" 
     mysql -uroot -p${dbpass} -e "$cesql"
-    systemctl enable mariadb.service
-
 else
     echo "您启用了远程数据库！"
-    systemctl disable mariadb.service
 fi
+systemctl enable mariadb.service
 systemctl start redis.service
 systemctl enable redis.service
 
@@ -219,6 +214,9 @@ systemctl enable gunicorn
 echo "后台开启爬虫,并且开启日志，后续可定时清理"
 nohup python3 $(pwd)/simdht_worker.py >$(pwd)/spider.log 2>&1& 
 
+
+sphinxpath=$(whereis sphinx-jieba | awk -F ' ' '{print $2}')
+echo "sphinx-jiebapath路径： ${sphinxpath}"
 read -p "是否安装了sphinx:?[y/n]" sphinxwhere
 if [[ x"${sphinxwhere}" == x"y" || x"${sphinxwhere}" == x"Y" ]]; then
     echo "已经安装！"
@@ -242,8 +240,6 @@ else
     cd ..
 fi
 
-sphinxpath=$(whereis sphinx-jieba | awk -F ' ' '{print $2}')
-echo "sphinx-jiebapath路径： ${sphinxpath}"
 
 
 
@@ -272,14 +268,15 @@ echo "开启定时时间为早上4点"
 systemctl start crond.service
 systemctl enable crond.service
 crontab -l > /tmp/crontab.bak
-echo '0 5 * * * /usr/local/sphinx-jieba/bin/indexer -c $(pwd)/sphinx.conf film --rotate&&/usr/local/sphinx-jieba/bin/searchd --config $(pwd)/sphinx.conf' >> /tmp/crontab.bak
+echo "0 5 * * * /usr/local/sphinx-jieba/bin/indexer -c $(pwd)/sphinx.conf film --rotate&&/usr/local/sphinx-jieba/bin/searchd --config $(pwd)/sphinx.conf" >> /tmp/crontab.bak
 crontab /tmp/crontab.bak
-systemctl restart gunicorn
-systemctl daemon-reload
-nginx -s reload
+
 echo '当前进程运行状态:'
 pgrep -l nginx
+
 pgrep -l searchd
+
 pgrep -l gunicorn
+
 
 echo "重启爬虫命令为: sh redht.sh"

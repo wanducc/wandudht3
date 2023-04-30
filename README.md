@@ -8,11 +8,10 @@
 ```Bash
 cd /root 
 yum -y install git 
-git  clone https://github.com/wanducc/wandudht3.git 
-cd wandudht3
+git  clone https://github.com/wanducc/wandudht.git 
+cd wandudht
 #然后运行check.sh安装必要的环境依赖包和组件
 sh check.sh 
-
 ```
 
 安装脚本只支持Centos7+Python2.7环境

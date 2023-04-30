@@ -6,7 +6,7 @@ After=network.target
 User=root
 Group=root
 WorkingDirectory=/root/wandudht
-ExecStart=/usr/bin/gunicorn -k gevent manage:app -b 0.0.0.0:8000 -w 4
+ExecStart=/usr/local/bin/gunicorn -k gevent manage:app -b 0.0.0.0:8000 -w 4
 ExecReload=/bin/kill -s HUP $MAINPID  
 ExecStop=/bin/kill -s QUIT $MAINPID 
 
