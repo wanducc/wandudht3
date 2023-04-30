@@ -165,6 +165,8 @@ yum -y install git gcc cmake automake g++ mysql-devel
 yum -y install  vixie-cron crontabs
 pip3 install --upgrade werkzeug
 pip3 install  setuptools
+pip3 install --upgrade pip
+
 pip3 install --upgrade setuptools
 pip3 install greenlet
 pip3 install wheel
