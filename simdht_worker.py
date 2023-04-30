@@ -90,7 +90,7 @@ def get_detail(y):
 def random_id():
     hash = hashlib.sha1()
     hash.update(entropy(20).encode('utf-8'))  # 对随机字符串进行编码
-    return h.digest()
+    return hash.digest()
 
 
 

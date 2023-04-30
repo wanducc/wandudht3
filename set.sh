@@ -112,13 +112,15 @@ if [[ x"${mysqlwhere}" == x"y" || x"${mysqlwhere}" == x"Y" ]]; then
 	mysqladmin -uroot -p password ${dbpass}
 	cesql="create database IF NOT EXISTS ${dbname} default character set utf8mb4;set global max_allowed_packet = 64*1024*1024;set global max_connections = 100000;" 
 	mysql -uroot -p${dbpass} -e "$cesql"
-	systemctl enable mariadb.service
+
 else
 	echo "您启用了远程数据库！"
-    systemctl enable mariadb.service
 fi
-
+systemctl stop mariadb.service
+systemctl start mariadb.service
+systemctl enable mariadb.service
 echo "开启队列信息……"
+systemctl stop redis.service
 systemctl start redis.service
 systemctl enable redis.service
 
@@ -134,7 +136,7 @@ echo "配置前端ngxin……"
 \cp -rpf nginx.conf  /etc/nginx/nginx.conf 
 nginx -s reload
 echo "启动前端网站，并且加载网络库"
-
+systemctl stop gunicorn
 systemctl start gunicorn
 systemctl enable gunicorn
 
