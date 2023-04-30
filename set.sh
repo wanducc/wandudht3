@@ -85,7 +85,7 @@ sed -i -e 's|8000|'$webport'|' systemctl/gunicorn.service
 sed -i -e 's|8000|'$webport'|' supervisor/gunicorn.conf
 sed -i -e 's|8000|'$webport'|' sphinx.conf
 
-
+yum install -y libstdc++-4.8.5-44.el7.i686
 echo "创建上传目录:"
 mkdir -p uploads  uploads/nvyou  uploads/fanhao
 #注册服务
@@ -194,7 +194,9 @@ systemctl enable crond.service
 crontab -l > /tmp/crontab.bak
 echo '0 5 * * * /usr/local/sphinx-jieba/bin/indexer -c $(pwd)/sphinx.conf film --rotate&&/usr/local/sphinx-jieba/bin/searchd --config $(pwd)/sphinx.conf' >> /tmp/crontab.bak
 crontab /tmp/crontab.bak
-
+systemctl restart gunicorn
+systemctl daemon-reload
+nginx -s reload
 echo '当前进程运行状态:'
 pgrep -l nginx
 pgrep -l searchd

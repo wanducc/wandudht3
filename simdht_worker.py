@@ -86,10 +86,13 @@ def get_detail(y):
     y['category'] = get_category(ext)
     y['extension'] = ext
     
+
 def random_id():
-    hash = sha1()
-    hash.update(entropy(20))
-    return hash.digest()
+    hash = hashlib.sha1()
+    hash.update(entropy(20).encode('utf-8'))  # 对随机字符串进行编码
+    return h.digest()
+
+
 
 def send_packet(the_socket, msg):
     the_socket.send(msg)
