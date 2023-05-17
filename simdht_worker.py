@@ -70,6 +70,8 @@ def get_category(ext):
         '压缩文件': '.zip.rar.7z.tar.gz.iso.dmg.pkg.',
         '安装包': '.exe.app.msi.apk.'
     }
+    #cateres=[k if ext in v else '其他' for k,v in cats.items()]
+    #return list(cateres[0].keys())[0]
     for k, v in cats.items():
         if ext in v:
             return k
